@@ -37,6 +37,7 @@ const SEED_DATA = {
     }
   ]
 }
+
 const STORAGE_KEY = 'friends_startup_data_v1'
 const THEME_KEY = 'friends_theme'
 
@@ -72,6 +73,9 @@ const styles = `
     --muted:#aaa;
   }
   *{ box-sizing:border-box; }
+  html, body, #root {
+    height: 100%;
+  }
   body {
     margin:0;
     font-family:Inter, system-ui, sans-serif;
@@ -79,7 +83,7 @@ const styles = `
     background:var(--bg);
     transition:background 0.3s, color 0.3s;
   }
-  .app { padding:18px; min-height:100vh; }
+  .app { padding:18px; min-height:100%; display:flex; flex-direction:column; }
   .header {
     display:flex; justify-content:space-between; align-items:center;
     gap:12px; flex-wrap:wrap;
@@ -192,13 +196,17 @@ export default function App(){
   const [ratingsModalIdea, setRatingsModalIdea] = useState(null)
   const [theme, setTheme] = useState('light')
 
-  // form states for sign in
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  // form states for add idea
   const [ideaTitle, setIdeaTitle] = useState('')
   const [ideaDesc, setIdeaDesc] = useState('')
+
+  // Edit profile states
+  const [editProfileOpen, setEditProfileOpen] = useState(false)
+  const [profileForm, setProfileForm] = useState({
+    name: '', bio: '', funnyTitle: '', superPower: ''
+  })
 
   useEffect(()=>{
     setDataState(loadData())
@@ -236,12 +244,27 @@ export default function App(){
     setData({...data, users:data.users.map(u=>({...u, ideas:u.ideas.map(idea=>idea.id===id ? {...idea, ratings:{...idea.ratings, [currentUserId]:rating}} : idea)}))})
   }
 
+  function openEditProfile(){
+    setProfileForm({...currentUser.profile})
+    setEditProfileOpen(true)
+  }
+
+  function saveProfile(){
+    setData({
+      ...data,
+      users: data.users.map(u =>
+        u.id === currentUserId ? { ...u, profile: { ...profileForm } } : u
+      )
+    })
+    setEditProfileOpen(false)
+  }
+
   return (
     <div className="app">
       <style>{styles}</style>
 
       {page==='signin' && (
-        <div style={{display:'flex', justifyContent:'center', alignItems:'center', minHeight:'80vh'}}>
+        <div style={{display:'flex', justifyContent:'center', alignItems:'center', height:'100vh', width:'100%'}}>
           <div className="card" style={{maxWidth:350, width:'100%', textAlign:'center'}}>
             <h2>Sign in</h2>
             <input placeholder="Username" value={username} onChange={e=>setUsername(e.target.value)} />
@@ -269,7 +292,11 @@ export default function App(){
             <div style={{display:'grid', gap:12}}>
               <div className="card">
                 <h2>Profile</h2>
+                <div><strong>{currentUser?.profile?.name}</strong></div>
                 <div className="muted">{currentUser?.profile?.bio}</div>
+                <div style={{marginTop:4}}><em>{currentUser?.profile?.funnyTitle}</em></div>
+                <div style={{marginTop:4}}><small>Superpower: {currentUser?.profile?.superPower}</small></div>
+                <button className="btn" style={{marginTop:10}} onClick={openEditProfile}>Edit Profile</button>
               </div>
               <div className="card">
                 <h3>Add a Startup Idea</h3>
@@ -290,7 +317,7 @@ export default function App(){
       {ratingsModalIdea && (
         <div className="modal-overlay">
           <div className="modal">
-            <h3>Ratings for \"{ratingsModalIdea.title}\"</h3>
+            <h3>Ratings for "{ratingsModalIdea.title}"</h3>
             {Object.keys(ratingsModalIdea.ratings||{}).length===0 && <div className="small">No ratings yet</div>}
             {Object.entries(ratingsModalIdea.ratings||{}).map(([uid,val])=>{
               const user = data.users.find(u=>u.id===uid)
@@ -298,6 +325,39 @@ export default function App(){
             })}
             <div style={{textAlign:'right', marginTop:10}}>
               <button className="btn" onClick={()=>setRatingsModalIdea(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editProfileOpen && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Edit Profile</h3>
+            <input
+              placeholder="Name"
+              value={profileForm.name}
+              onChange={e => setProfileForm({...profileForm, name: e.target.value})}
+            />
+            <textarea
+              placeholder="Bio"
+              rows={2}
+              value={profileForm.bio}
+              onChange={e => setProfileForm({...profileForm, bio: e.target.value})}
+            />
+            <input
+              placeholder="Funny Title"
+              value={profileForm.funnyTitle}
+              onChange={e => setProfileForm({...profileForm, funnyTitle: e.target.value})}
+            />
+            <input
+              placeholder="Super Power"
+              value={profileForm.superPower}
+              onChange={e => setProfileForm({...profileForm, superPower: e.target.value})}
+            />
+            <div style={{marginTop:10, display:'flex', justifyContent:'flex-end', gap:8}}>
+              <button className="btn" onClick={saveProfile}>Save</button>
+              <button className="btn" style={{background:'#888'}} onClick={()=>setEditProfileOpen(false)}>Cancel</button>
             </div>
           </div>
         </div>
