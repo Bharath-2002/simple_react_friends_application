@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { FaMoon, FaSun } from 'react-icons/fa'
+import { FaMoon, FaSun, FaTrash } from 'react-icons/fa'
 
 // --- Seed data ---
 const SEED_DATA = {
@@ -14,19 +14,12 @@ const SEED_DATA = {
         funnyTitle: 'Idea Machine',
         superPower: 'Can create a startup pitch in under 5 minutes'
       },
-       ideas: [
-        {
-          id: 'i1',
-          title: 'AR based object visualization',
-          description: 'AR object visualization for e-commerce to help customers see products in their environment before buying.image to 3d model conversion is required. ',
-          ratings: { u1: 5, u2: 4 }
-        }
-      ]
+      ideas: []
     },
     {
       id: 'u2',
       username: 'enish',
-      password: 'abcd',
+      password: '9865808999',
       profile: {
         name: 'Enish',
         bio: 'Civil engineer',
@@ -38,7 +31,7 @@ const SEED_DATA = {
     {
       id: 'u3',
       username: 'kavimani',
-      password: 'abcd',
+      password: '8072075146',
       profile: {
         name: 'Kavimani',
         bio: 'Developer, provides software ideas',
@@ -50,7 +43,7 @@ const SEED_DATA = {
     {
       id: 'u4',
       username: 'magesh',
-      password: 'abcd',
+      password: '9345379860',
       profile: {
         name: 'Magesh',
         bio: 'UI/UX developer',
@@ -62,7 +55,7 @@ const SEED_DATA = {
     {
       id: 'u5',
       username: 'dhyanesh',
-      password: 'abcd',
+      password: '9489874074',
       profile: {
         name: 'Dhyanesh',
         bio: 'Software developer',
@@ -74,7 +67,7 @@ const SEED_DATA = {
     {
       id: 'u6',
       username: 'badhri',
-      password: 'abcd',
+      password: '9994384669',
       profile: {
         name: 'Badhri',
         bio: 'Gemology expert with gemstone knowledge',
@@ -99,24 +92,28 @@ function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) return JSON.parse(raw)
-  } catch (e) {}
+  } catch {}
   return JSON.parse(JSON.stringify(SEED_DATA))
 }
 
 function saveData(data) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) } catch (e) {}
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  } catch {}
 }
 
 function loadPresenter() {
   try {
     const raw = localStorage.getItem(PRESENTER_KEY)
     if (raw) return JSON.parse(raw)
-  } catch (e) {}
+  } catch {}
   return { presenter: '', date: '' }
 }
 
 function savePresenter(data) {
-  try { localStorage.setItem(PRESENTER_KEY, JSON.stringify(data)) } catch (e) {}
+  try {
+    localStorage.setItem(PRESENTER_KEY, JSON.stringify(data))
+  } catch {}
 }
 
 // --- Styles ---
@@ -125,7 +122,7 @@ const styles = `
     --accent:#ff6b6b;
     --muted:#666;
     --card:#fff;
-    --bg:#fff7f2;
+    --bg:#f9f9f9;
     --text:#222;
   }
   body.dark {
@@ -145,7 +142,7 @@ const styles = `
     background:var(--bg);
     transition:background 0.3s, color 0.3s;
   }
-  .app { padding:18px; min-height:100%; display:flex; flex-direction:column; }
+  .app { padding:20px; min-height:100%; display:flex; flex-direction:column; }
   .header {
     display:flex; justify-content:space-between; align-items:center;
     gap:12px; flex-wrap:wrap;
@@ -167,14 +164,15 @@ const styles = `
     font-size:14px;
   }
   .muted{ color:var(--muted); font-size:13px; }
-  .grid { display:grid; gap:16px; grid-template-columns:1fr; }
+  .grid { display:grid; gap:20px; grid-template-columns:1fr; }
   @media(min-width:900px){ .grid{ grid-template-columns:320px 1fr; } }
   .idea {
-    padding:12px;
+    padding:14px;
     border-radius:12px;
     background:var(--card);
-    box-shadow:0 4px 12px rgba(0,0,0,0.04);
+    box-shadow:0 4px 12px rgba(0,0,0,0.05);
     transition:background 0.3s;
+    margin-bottom:16px;
   }
   .star { font-size:20px; margin-right:6px; cursor:pointer; }
   .star.filled{ color:#f6c84c; }
@@ -202,8 +200,11 @@ function ThemeToggle({ theme, toggle }) {
     <button
       onClick={toggle}
       style={{
-        background:'transparent', border:'none',
-        cursor:'pointer', fontSize:'20px', color:'var(--text)'
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        fontSize: '20px',
+        color: 'var(--text)'
       }}
       title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
@@ -212,14 +213,16 @@ function ThemeToggle({ theme, toggle }) {
   )
 }
 
-function StarRating({ value=0, onRate, readOnly=false }) {
-  const stars = [1,2,3,4,5]
+function StarRating({ value = 0, onRate, readOnly = false }) {
+  const stars = [1, 2, 3, 4, 5]
   return (
-    <div style={{display:'flex', alignItems:'center'}}>
+    <div style={{ display: 'flex', alignItems: 'center' }}>
       {stars.map(s => (
         <span
           key={s}
-          onClick={() => { if (!readOnly) onRate(s) }}
+          onClick={() => {
+            if (!readOnly) onRate(s)
+          }}
           className={`star ${s <= value ? 'filled' : ''}`}
         >
           ★
@@ -229,29 +232,55 @@ function StarRating({ value=0, onRate, readOnly=false }) {
   )
 }
 
-function IdeaCard({ idea, currentUserId, onRate, onViewRatings }) {
+function IdeaCard({ idea, ownerId, currentUserId, onRate, onViewRatings, onDelete }) {
   const ratings = idea.ratings || {}
   const values = Object.values(ratings)
-  const avg = values.length ? (values.reduce((a,b)=>a+b,0)/values.length).toFixed(1) : '—'
+  const avg = values.length
+    ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1)
+    : '—'
   return (
     <div className="idea">
-      <div style={{display:'flex', justifyContent:'space-between', alignItems:'baseline'}}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <strong>{idea.title}</strong>
         <div className="small muted">Avg: {avg}</div>
       </div>
-      <div style={{marginTop:8}}>{idea.description}</div>
-      <div style={{marginTop:10, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8}}>
-        <div style={{display:'flex', alignItems:'center', gap:8}}>
-          <StarRating value={ratings[currentUserId] || 0} onRate={s=>onRate(idea.id,s)} />
+      <div style={{ marginTop: 8 }}>{idea.description}</div>
+      <div
+        style={{
+          marginTop: 10,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 8
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <StarRating
+            value={ratings[currentUserId] || 0}
+            onRate={s => onRate(idea.id, s)}
+          />
           <div className="small muted">({values.length} votes)</div>
         </div>
-        <button className="btn" onClick={()=>onViewRatings(idea)}>View Ratings</button>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button className="btn" onClick={() => onViewRatings(idea)}>View Ratings</button>
+          {ownerId === currentUserId && (
+            <button
+              className="btn"
+              style={{ background: '#d9534f' }}
+              onClick={() => onDelete(idea.id)}
+              title="Delete this idea"
+            >
+              <FaTrash />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
 }
 
-export default function App(){
+export default function App() {
   const [data, setDataState] = useState(null)
   const [currentUserId, setCurrentUserId] = useState(null)
   const [page, setPage] = useState('signin')
@@ -265,55 +294,78 @@ export default function App(){
   const [profileForm, setProfileForm] = useState({
     name: '', bio: '', funnyTitle: '', superPower: ''
   })
-
-  // New: Presenter modal state
   const [presenterModalOpen, setPresenterModalOpen] = useState(false)
   const [presenterData, setPresenterData] = useState({ presenter: '', date: '' })
 
-  useEffect(()=>{
+  useEffect(() => {
     setDataState(loadData())
     const savedTheme = localStorage.getItem(THEME_KEY) || 'light'
     setTheme(savedTheme)
     document.body.classList.toggle('dark', savedTheme === 'dark')
     setPresenterData(loadPresenter())
-  },[])
+  }, [])
 
-  useEffect(()=>{ if(data) saveData(data) },[data])
-  useEffect(()=>{ savePresenter(presenterData) },[presenterData])
-  useEffect(()=>{
+  useEffect(() => { if (data) saveData(data) }, [data])
+  useEffect(() => { savePresenter(presenterData) }, [presenterData])
+  useEffect(() => {
     localStorage.setItem(THEME_KEY, theme)
     document.body.classList.toggle('dark', theme === 'dark')
-  },[theme])
+  }, [theme])
 
-  const currentUser = data?.users.find(u=>u.id===currentUserId) || null
-  const setData = (next)=>setDataState(next)
+  const currentUser = data?.users.find(u => u.id === currentUserId) || null
+  const setData = next => setDataState(next)
 
-  function signin(){
-    const user = data.users.find(u=>u.username===username && u.password===password)
-    if(!user) return alert('Invalid credentials')
+  function signin() {
+    const user = data.users.find(u => u.username === username && u.password === password)
+    if (!user) return alert('Invalid credentials')
     setCurrentUserId(user.id)
     setPage('profile')
   }
-  function signout(){ setCurrentUserId(null); setPage('signin') }
+  function signout() { setCurrentUserId(null); setPage('signin') }
 
-  function addIdea(){
-    if(!ideaTitle.trim()) return alert('Enter a title')
-    const newIdea = { id:makeId('i'), title:ideaTitle, description:ideaDesc, ratings:{} }
-    setData({...data, users:data.users.map(u=>u.id===currentUserId ? {...u, ideas:[newIdea,...u.ideas]} : u)})
+  function addIdea() {
+    if (!ideaTitle.trim()) return alert('Enter a title')
+    const newIdea = { id: makeId('i'), title: ideaTitle, description: ideaDesc, ratings: {} }
+    setData({
+      ...data,
+      users: data.users.map(u => u.id === currentUserId ? { ...u, ideas: [newIdea, ...u.ideas] } : u)
+    })
     setIdeaTitle('')
     setIdeaDesc('')
   }
 
-  function rateIdea(id, rating){
-    setData({...data, users:data.users.map(u=>({...u, ideas:u.ideas.map(idea=>idea.id===id ? {...idea, ratings:{...idea.ratings, [currentUserId]:rating}} : idea)}))})
+  function deleteIdea(ideaId) {
+    if (!window.confirm('Are you sure you want to delete this idea?')) return
+    setData({
+      ...data,
+      users: data.users.map(u =>
+        u.id === currentUserId
+          ? { ...u, ideas: u.ideas.filter(idea => idea.id !== ideaId) }
+          : u
+      )
+    })
   }
 
-  function openEditProfile(){
-    setProfileForm({...currentUser.profile})
+  function rateIdea(id, rating) {
+    setData({
+      ...data,
+      users: data.users.map(u => ({
+        ...u,
+        ideas: u.ideas.map(idea =>
+          idea.id === id
+            ? { ...idea, ratings: { ...idea.ratings, [currentUserId]: rating } }
+            : idea
+        )
+      }))
+    })
+  }
+
+  function openEditProfile() {
+    setProfileForm({ ...currentUser.profile })
     setEditProfileOpen(true)
   }
 
-  function saveProfile(){
+  function saveProfile() {
     setData({
       ...data,
       users: data.users.map(u =>
@@ -327,7 +379,7 @@ export default function App(){
     <div className="app">
       <style>{styles}</style>
 
-      {page==='signin' && (
+      {page === 'signin' && (
         <div style={{display:'flex', justifyContent:'center', alignItems:'center', height:'100vh', width:'100%'}}>
           <div className="card" style={{maxWidth:350, width:'100%', textAlign:'center'}}>
             <h2>Sign in</h2>
@@ -338,9 +390,9 @@ export default function App(){
         </div>
       )}
 
-      {page!=='signin' && (
+      {page !== 'signin' && (
         <div style={{maxWidth:1200, margin:'0 auto'}}>
-          <div className="header" style={{marginBottom:16}}>
+          <div className="header" style={{marginBottom:20}}>
             <div>
               <h1 style={{margin:0}}>Startup Suggest-O-Matic 🚀</h1>
               <div className="muted">Pitch & rate startup ideas</div>
@@ -354,7 +406,7 @@ export default function App(){
           </div>
 
           <div className="grid">
-            <div style={{display:'grid', gap:12}}>
+            <div style={{display:'grid', gap:14}}>
               <div className="card">
                 <h2>Profile</h2>
                 <div><strong>{currentUser?.profile?.name}</strong></div>
@@ -371,63 +423,59 @@ export default function App(){
               </div>
             </div>
             <div>
-              {data && data.users.flatMap(u=>u.ideas.map(idea=>(
-                <IdeaCard key={idea.id} idea={idea} currentUserId={currentUserId} onRate={rateIdea} onViewRatings={setRatingsModalIdea} />
-              )))}
+              {data && data.users.flatMap(u =>
+                u.ideas.map(idea => (
+                  <IdeaCard
+                    key={idea.id}
+                    idea={idea}
+                    ownerId={u.id}
+                    currentUserId={currentUserId}
+                    onRate={rateIdea}
+                    onViewRatings={setRatingsModalIdea}
+                    onDelete={deleteIdea}
+                  />
+                ))
+              )}
             </div>
           </div>
         </div>
       )}
 
+      {/* Ratings Modal */}
       {ratingsModalIdea && (
         <div className="modal-overlay">
           <div className="modal">
             <h3>Ratings for "{ratingsModalIdea.title}"</h3>
-            {Object.keys(ratingsModalIdea.ratings||{}).length===0 && <div className="small">No ratings yet</div>}
-            {Object.entries(ratingsModalIdea.ratings||{}).map(([uid,val])=>{
-              const user = data.users.find(u=>u.id===uid)
+            {Object.keys(ratingsModalIdea.ratings || {}).length === 0 && <div className="small">No ratings yet</div>}
+            {Object.entries(ratingsModalIdea.ratings || {}).map(([uid, val]) => {
+              const user = data.users.find(u => u.id === uid)
               return <div key={uid} className="rating-row"><div>{user?.profile?.name}</div><div>{val} ⭐</div></div>
             })}
             <div style={{textAlign:'right', marginTop:10}}>
-              <button className="btn" onClick={()=>setRatingsModalIdea(null)}>Close</button>
+              <button className="btn" onClick={() => setRatingsModalIdea(null)}>Close</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Edit Profile Modal */}
       {editProfileOpen && (
         <div className="modal-overlay">
           <div className="modal">
             <h3>Edit Profile</h3>
-            <input
-              placeholder="Name"
-              value={profileForm.name}
-              onChange={e => setProfileForm({...profileForm, name: e.target.value})}
-            />
-            <textarea
-              placeholder="Bio"
-              rows={2}
-              value={profileForm.bio}
-              onChange={e => setProfileForm({...profileForm, bio: e.target.value})}
-            />
-            <input
-              placeholder="Funny Title"
-              value={profileForm.funnyTitle}
-              onChange={e => setProfileForm({...profileForm, funnyTitle: e.target.value})}
-            />
-            <input
-              placeholder="Super Power"
-              value={profileForm.superPower}
-              onChange={e => setProfileForm({...profileForm, superPower: e.target.value})}
-            />
+            <input placeholder="Name" value={profileForm.name} onChange={e => setProfileForm({...profileForm, name: e.target.value})} />
+            <textarea placeholder="Bio" rows={2} value={profileForm.bio} onChange={e => setProfileForm({...profileForm, bio: e.target.value})} />
+            <input placeholder="Funny Title" value={profileForm.funnyTitle} onChange={e => setProfileForm({...profileForm, funnyTitle: e.target.value})} />
+            <input placeholder="Super Power" value={profileForm.superPower} onChange={e => setProfileForm({...profileForm, superPower: e.target.value})} />
             <div style={{marginTop:10, display:'flex', justifyContent:'flex-end', gap:8}}>
               <button className="btn" onClick={saveProfile}>Save</button>
-              <button className="btn" style={{background:'#888'}} onClick={()=>setEditProfileOpen(false)}>Cancel</button>
+              <button className="btn" style={{background:'#888'}} onClick={() => setEditProfileOpen(false)}>Cancel</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Presenter Modal */}
       {presenterModalOpen && (
         <div className="modal-overlay">
           <div className="modal">
@@ -440,32 +488,15 @@ export default function App(){
             ) : (
               <div className="small muted" style={{marginBottom:10}}>No presenter set yet.</div>
             )}
-
             {currentUserId === 'u1' && (
               <>
-                <input
-                  placeholder="Presenter Name"
-                  value={presenterData.presenter}
-                  onChange={e=>setPresenterData({...presenterData, presenter: e.target.value})}
-                />
-                <input
-                  type="date"
-                  value={presenterData.date}
-                  onChange={e=>setPresenterData({...presenterData, date: e.target.value})}
-                  style={{marginTop:6}}
-                />
-                <button
-                  className="btn"
-                  style={{marginTop:10}}
-                  onClick={()=>alert('Presenter updated!')}
-                >
-                  Save
-                </button>
+                <input placeholder="Presenter Name" value={presenterData.presenter} onChange={e=>setPresenterData({...presenterData, presenter: e.target.value})} />
+                <input type="date" value={presenterData.date} onChange={e=>setPresenterData({...presenterData, date: e.target.value})} style={{marginTop:6}} />
+                <button className="btn" style={{marginTop:10}} onClick={() => alert('Presenter updated!')}>Save</button>
               </>
             )}
-
             <div style={{textAlign:'right', marginTop:10}}>
-              <button className="btn" style={{background:'#888'}} onClick={()=>setPresenterModalOpen(false)}>Close</button>
+              <button className="btn" style={{background:'#888'}} onClick={() => setPresenterModalOpen(false)}>Close</button>
             </div>
           </div>
         </div>
