@@ -394,7 +394,7 @@ export default function App() {
         <div style={{maxWidth:1200, margin:'0 auto'}}>
           <div className="header" style={{marginBottom:20}}>
             <div>
-              <h1 style={{margin:0}}>Startup Suggest-O-Matic 🚀</h1>
+              <h1 style={{margin:0}}>2030 🚀</h1>
               <div className="muted">Pitch & rate startup ideas</div>
             </div>
             <div style={{display:'flex', alignItems:'center', gap:12}}>
