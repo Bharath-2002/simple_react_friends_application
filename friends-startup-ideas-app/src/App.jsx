@@ -9,37 +9,87 @@ const SEED_DATA = {
       username: 'bharath',
       password: '1234',
       profile: {
-        name: 'Bharath S',
-        bio: 'Aspiring startup billionaire 💸',
-        funnyTitle: 'Chief Snack Officer',
-        superPower: 'Can debug with eyes closed'
+        name: 'Bharath',
+        bio: 'Coder, software developer providing B2B ideas',
+        funnyTitle: 'Idea Machine',
+        superPower: 'Can create a startup pitch in under 5 minutes'
       },
-      ideas: [
+       ideas: [
         {
           id: 'i1',
-          title: 'Smart Fridge that Orders Snacks',
-          description: 'Fridge detects snacks running low and orders instantly.',
+          title: 'AR based object visualization',
+          description: 'AR object visualization for e-commerce to help customers see products in their environment before buying.image to 3d model conversion is required. ',
           ratings: { u1: 5, u2: 4 }
         }
       ]
     },
     {
       id: 'u2',
-      username: 'rahul',
+      username: 'enish',
       password: 'abcd',
       profile: {
-        name: 'Rahul R',
-        bio: 'Techie & meme enthusiast',
-        funnyTitle: 'Meme Distribution Head',
-        superPower: 'Invents problems to solve'
+        name: 'Enish',
+        bio: 'Civil engineer',
+        funnyTitle: 'Structure Sensei',
+        superPower: 'Can measure distances just by looking'
+      },
+      ideas: []
+    },
+    {
+      id: 'u3',
+      username: 'kavimani',
+      password: 'abcd',
+      profile: {
+        name: 'Kavimani',
+        bio: 'Developer, provides software ideas',
+        funnyTitle: 'Logic Architect',
+        superPower: 'Turns coffee into code instantly'
+      },
+      ideas: []
+    },
+    {
+      id: 'u4',
+      username: 'magesh',
+      password: 'abcd',
+      profile: {
+        name: 'Magesh',
+        bio: 'UI/UX developer',
+        funnyTitle: 'Pixel Perfectionist',
+        superPower: 'Can spot a 1px misalignment from across the room'
+      },
+      ideas: []
+    },
+    {
+      id: 'u5',
+      username: 'dhyanesh',
+      password: 'abcd',
+      profile: {
+        name: 'Dhyanesh',
+        bio: 'Software developer',
+        funnyTitle: 'Bug Whisperer',
+        superPower: 'Fixes bugs before they appear'
+      },
+      ideas: []
+    },
+    {
+      id: 'u6',
+      username: 'badhri',
+      password: 'abcd',
+      profile: {
+        name: 'Badhri',
+        bio: 'Gemology expert with gemstone knowledge',
+        funnyTitle: 'Stone Sage',
+        superPower: 'Identifies gems faster than Google Lens'
       },
       ideas: []
     }
   ]
 }
 
+
 const STORAGE_KEY = 'friends_startup_data_v1'
 const THEME_KEY = 'friends_theme'
+const PRESENTER_KEY = 'next_week_presenter'
 
 function makeId(prefix = 'id') {
   return prefix + '_' + Math.random().toString(36).slice(2, 9)
@@ -55,6 +105,18 @@ function loadData() {
 
 function saveData(data) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) } catch (e) {}
+}
+
+function loadPresenter() {
+  try {
+    const raw = localStorage.getItem(PRESENTER_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch (e) {}
+  return { presenter: '', date: '' }
+}
+
+function savePresenter(data) {
+  try { localStorage.setItem(PRESENTER_KEY, JSON.stringify(data)) } catch (e) {}
 }
 
 // --- Styles ---
@@ -195,27 +257,29 @@ export default function App(){
   const [page, setPage] = useState('signin')
   const [ratingsModalIdea, setRatingsModalIdea] = useState(null)
   const [theme, setTheme] = useState('light')
-
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-
   const [ideaTitle, setIdeaTitle] = useState('')
   const [ideaDesc, setIdeaDesc] = useState('')
-
-  // Edit profile states
   const [editProfileOpen, setEditProfileOpen] = useState(false)
   const [profileForm, setProfileForm] = useState({
     name: '', bio: '', funnyTitle: '', superPower: ''
   })
+
+  // New: Presenter modal state
+  const [presenterModalOpen, setPresenterModalOpen] = useState(false)
+  const [presenterData, setPresenterData] = useState({ presenter: '', date: '' })
 
   useEffect(()=>{
     setDataState(loadData())
     const savedTheme = localStorage.getItem(THEME_KEY) || 'light'
     setTheme(savedTheme)
     document.body.classList.toggle('dark', savedTheme === 'dark')
+    setPresenterData(loadPresenter())
   },[])
 
   useEffect(()=>{ if(data) saveData(data) },[data])
+  useEffect(()=>{ savePresenter(presenterData) },[presenterData])
   useEffect(()=>{
     localStorage.setItem(THEME_KEY, theme)
     document.body.classList.toggle('dark', theme === 'dark')
@@ -282,6 +346,7 @@ export default function App(){
               <div className="muted">Pitch & rate startup ideas</div>
             </div>
             <div style={{display:'flex', alignItems:'center', gap:12}}>
+              <button className="btn" onClick={()=>setPresenterModalOpen(true)}>Next Week's Presenter</button>
               <ThemeToggle theme={theme} toggle={()=>setTheme(theme==='light'?'dark':'light')} />
               <div className="muted">Signed in as <strong>{currentUser?.profile?.name}</strong></div>
               <button className="btn" onClick={signout}>Sign out</button>
@@ -358,6 +423,49 @@ export default function App(){
             <div style={{marginTop:10, display:'flex', justifyContent:'flex-end', gap:8}}>
               <button className="btn" onClick={saveProfile}>Save</button>
               <button className="btn" style={{background:'#888'}} onClick={()=>setEditProfileOpen(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {presenterModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Next Week's Presenter</h3>
+            {presenterData.presenter && presenterData.date ? (
+              <div style={{marginBottom:10}}>
+                <div><strong>Presenter:</strong> {presenterData.presenter}</div>
+                <div><strong>Date:</strong> {presenterData.date}</div>
+              </div>
+            ) : (
+              <div className="small muted" style={{marginBottom:10}}>No presenter set yet.</div>
+            )}
+
+            {currentUserId === 'u1' && (
+              <>
+                <input
+                  placeholder="Presenter Name"
+                  value={presenterData.presenter}
+                  onChange={e=>setPresenterData({...presenterData, presenter: e.target.value})}
+                />
+                <input
+                  type="date"
+                  value={presenterData.date}
+                  onChange={e=>setPresenterData({...presenterData, date: e.target.value})}
+                  style={{marginTop:6}}
+                />
+                <button
+                  className="btn"
+                  style={{marginTop:10}}
+                  onClick={()=>alert('Presenter updated!')}
+                >
+                  Save
+                </button>
+              </>
+            )}
+
+            <div style={{textAlign:'right', marginTop:10}}>
+              <button className="btn" style={{background:'#888'}} onClick={()=>setPresenterModalOpen(false)}>Close</button>
             </div>
           </div>
         </div>
