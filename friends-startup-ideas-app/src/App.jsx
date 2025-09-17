@@ -33,7 +33,7 @@ export default function App() {
           method: "POST",
           headers: {
             Authorization:
-              "Token 7086aff517b6cba110e00123482873bbb3cb6711",
+              "Token a306c3e535187b029478ba5dad851bd7d6d32bfa",
           },
           body: formData,
         }
