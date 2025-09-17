@@ -19,6 +19,7 @@ export default function App() {
     }
 
     setLoading(true);
+
     const formData = new FormData();
     formData.append("username", username);
     formData.append("email", email);
@@ -26,16 +27,27 @@ export default function App() {
     formData.append("image", image);
 
     try {
-      const res = await fetch("/api/proxy", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        "https://q7olippj80.execute-api.ap-south-1.amazonaws.com/dev/api/analysis/",
+        {
+          method: "POST",
+          headers: {
+            Authorization:
+              "Token 6ea6569a55aaac5ab6bc37cafe9e5323d33468f4",
+          },
+          body: formData,
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`Server responded with ${res.status}`);
+      }
 
       const data = await res.json();
       setResult(data);
     } catch (err) {
-      console.error(err);
-      alert("Error while uploading");
+      console.error("Error:", err);
+      alert("Something went wrong, please try again.");
     } finally {
       setLoading(false);
     }
@@ -68,9 +80,18 @@ export default function App() {
           onChange={(e) => setDescription(e.target.value)}
         />
 
-        <input className="file-input" type="file" accept="image/*" onChange={handleImageUpload} />
+        <input
+          className="file-input"
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+        />
 
-        <button className="button" onClick={handleSubmit} disabled={loading}>
+        <button
+          className="button"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
           {loading ? "Analyzing..." : "Submit"}
         </button>
       </div>
