@@ -11,7 +11,7 @@ export default async function handler(req, res) {
       {
         method: req.method,
         headers: {
-          Authorization: "Token 4e00e89b38321538f02e0d3932469a1a8a666339",
+          Authorization: "Token da7e89194787cf793661168d0c3e6edb8ee5342e",
           // Don't set Content-Type, let fetch handle it for FormData
         },
         body: req.method === "POST" ? req : undefined,
