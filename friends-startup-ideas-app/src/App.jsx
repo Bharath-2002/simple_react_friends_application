@@ -26,17 +26,11 @@ export default function App() {
     formData.append("image", image);
 
     try {
-      const res = await fetch(
-        "https://q7olippj80.execute-api.ap-south-1.amazonaws.com/dev/api/analysis/",
-        {
-          method: "POST",
-          headers: {
-            Authorization:
-              "Token 4e00e89b38321538f02e0d3932469a1a8a666339",
-          },
-          body: formData,
-        }
-      );
+      const res = await fetch("/api/proxy", {
+        method: "POST",
+        body: formData,
+      });
+
       const data = await res.json();
       setResult(data);
     } catch (err) {
@@ -48,102 +42,89 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-purple-100 p-4 flex flex-col items-center">
-      <div className="max-w-xl w-full shadow-xl rounded-2xl p-6 bg-white">
-        <h1 className="text-2xl font-bold mb-4 text-center text-purple-700">
-          Skin Analysis
-        </h1>
+    <div className="container">
+      <div className="card">
+        <h1 className="title">Skin Analysis</h1>
 
-        <div className="space-y-4">
-          <input
-            className="w-full p-2 border rounded"
-            placeholder="Enter your username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <input
-            className="w-full p-2 border rounded"
-            placeholder="Enter your email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <textarea
-            className="w-full p-2 border rounded"
-            placeholder="Description (optional)"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <input type="file" accept="image/*" onChange={handleImageUpload} />
+        <input
+          className="input"
+          placeholder="Enter your username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
 
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700"
-          >
-            {loading ? "Analyzing..." : "Submit"}
-          </button>
-        </div>
+        <input
+          className="input"
+          placeholder="Enter your email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <textarea
+          className="textarea"
+          placeholder="Description (optional)"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+
+        <input className="file-input" type="file" accept="image/*" onChange={handleImageUpload} />
+
+        <button className="button" onClick={handleSubmit} disabled={loading}>
+          {loading ? "Analyzing..." : "Submit"}
+        </button>
       </div>
 
       {result && (
-        <div className="mt-6 w-full max-w-2xl space-y-6">
-          <div className="p-4 bg-white rounded shadow">
-            <h2 className="text-xl font-semibold text-purple-700">
-              Analysis Result
-            </h2>
-            <p className="mt-2 text-gray-700">Skin Score: {result.analysis.skin_score}</p>
-            <p className="text-gray-700">Skin Type: {result.analysis.skin_type}</p>
-            <p className="text-gray-700">
-              Primary Concern: {result.analysis.primary_concern}
-            </p>
+        <div className="card">
+          <h2>Analysis Result</h2>
+          <p><strong>Skin Score:</strong> {result.analysis.skin_score}</p>
+          <p><strong>Skin Type:</strong> {result.analysis.skin_type}</p>
+          <p><strong>Primary Concern:</strong> {result.analysis.primary_concern}</p>
 
-            <h3 className="mt-4 font-semibold">Issues:</h3>
-            <ul className="list-disc ml-6 text-gray-600">
-              {result.analysis.issues.map((issue, i) => (
-                <li key={i}>{issue}</li>
-              ))}
-            </ul>
+          <h3>Issues:</h3>
+          <ul>
+            {result.analysis.issues.map((issue, i) => (
+              <li key={i}>{issue}</li>
+            ))}
+          </ul>
 
-            <h3 className="mt-4 font-semibold">Basic Issues with Severity:</h3>
-            <ul className="list-disc ml-6 text-gray-600">
-              {result.analysis.basic_issues_with_severity.map((item, i) => (
-                <li key={i}>
-                  {item.name}: {item.severity}%
-                </li>
-              ))}
-            </ul>
+          <h3>Basic Issues with Severity:</h3>
+          <ul>
+            {result.analysis.basic_issues_with_severity.map((item, i) => (
+              <li key={i}>
+                {item.name}: {item.severity}%
+              </li>
+            ))}
+          </ul>
 
-            <h3 className="mt-4 font-semibold">Result:</h3>
-            <p className="text-gray-700">{result.analysis.result}</p>
+          <h3>Result:</h3>
+          <p>{result.analysis.result}</p>
 
-            <h3 className="mt-4 font-semibold">Remedies:</h3>
-            <p className="text-gray-700">{result.analysis.remedies}</p>
+          <h3>Remedies:</h3>
+          <p>{result.analysis.remedies}</p>
 
-            <h3 className="mt-4 font-semibold">Recommended Ingredients:</h3>
-            <ul className="list-disc ml-6 text-gray-600">
-              {result.analysis.recommended_ingredients.map((ing, i) => (
-                <li key={i}>{ing}</li>
-              ))}
-            </ul>
-          </div>
+          <h3>Recommended Ingredients:</h3>
+          <ul>
+            {result.analysis.recommended_ingredients.map((ing, i) => (
+              <li key={i}>{ing}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-          <div className="p-4 bg-white rounded shadow">
-            <h2 className="text-xl font-semibold text-purple-700">
-              Product Recommendations
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {result.recommendations.map((rec) => (
-                <div key={rec.id} className="p-4 bg-purple-50 rounded shadow">
-                  <h3 className="font-semibold text-lg">{rec.name}</h3>
-                  <p className="text-gray-600">{rec.description}</p>
-                  <p className="text-sm mt-2 text-gray-500">
-                    Applicable For: {rec.applicable_for.join(", ")}
-                  </p>
-                  <p className="font-bold mt-2 text-purple-700">₹{rec.price}</p>
-                </div>
-              ))}
-            </div>
+      {result?.recommendations && (
+        <div className="card">
+          <h2>Product Recommendations</h2>
+          <div className="grid">
+            {result.recommendations.map((rec) => (
+              <div key={rec.id} className="sub-card">
+                <h3>{rec.name}</h3>
+                <p>{rec.description}</p>
+                <p><em>Applicable For:</em> {rec.applicable_for.join(", ")}</p>
+                <p><strong>₹{rec.price}</strong></p>
+              </div>
+            ))}
           </div>
         </div>
       )}
