@@ -1,9 +1,10 @@
 import formidable from "formidable";
 import fs from "fs";
+import FormData from "form-data";
 
 export const config = {
   api: {
-    bodyParser: false, // we parse manually
+    bodyParser: false, // we will handle parsing ourselves
   },
 };
 
@@ -21,7 +22,7 @@ export default async function handler(req, res) {
     }
 
     try {
-      // Build a fresh FormData
+      // Build a new FormData (from the `form-data` package)
       const formData = new FormData();
       formData.append("username", fields.username);
       formData.append("email", fields.email);
@@ -29,23 +30,26 @@ export default async function handler(req, res) {
         formData.append("description", fields.description);
       }
 
-      // Attach uploaded file
+      // Attach the file
       if (files.image) {
         const file = files.image;
-        const buffer = fs.readFileSync(file.filepath);
-        formData.append("image", new Blob([buffer]), file.originalFilename);
+        formData.append(
+          "image",
+          fs.createReadStream(file.filepath),
+          file.originalFilename
+        );
       }
 
-      // Forward to your API
+      // Forward to external API
       const response = await fetch(
         "https://q7olippj80.execute-api.ap-south-1.amazonaws.com/dev/api/analysis/",
         {
           method: "POST",
           headers: {
             Authorization: "Token 4e00e89b38321538f02e0d3932469a1a8a666339",
+            ...formData.getHeaders(), // <-- important, sets Content-Type with boundary
           },
           body: formData,
-          duplex: "half",
         }
       );
 
